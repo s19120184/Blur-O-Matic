@@ -19,13 +19,23 @@ package com.example.bluromatic.data
 import android.content.Context
 import android.net.Uri
 import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.example.bluromatic.KEY_BLUR_LEVEL
 import com.example.bluromatic.KEY_IMAGE_URI
+import com.example.bluromatic.workers.BlurWorker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class WorkManagerBluromaticRepository(context: Context) : BluromaticRepository {
+
+    /**
+     * Crear una variable llamada workManager y  llamamos a
+     *WorkaManger.getInstance(context) para almacenar una isntacia de WorkManager
+     */
+    private val workManager = WorkManager.getInstance(context)
+
 
     override val outputWorkInfo: Flow<WorkInfo?> = MutableStateFlow(null)
 
@@ -33,7 +43,18 @@ class WorkManagerBluromaticRepository(context: Context) : BluromaticRepository {
      * Create the WorkRequests to apply the blur and save the resulting image
      * @param blurLevel The amount to blur the image
      */
-    override fun applyBlur(blurLevel: Int) {}
+    override fun applyBlur(blurLevel: Int) {
+        /**
+         * para propagar una varible nueva llmada blurBuilder , crea una OneTimeWorkRequest
+         * para el Worker de desenfoque y llama  a la funcion de extencion  OneTimeWorkRequestBuilder
+         * desde WorkManager KTX
+         */
+        val blurBuilder = OneTimeWorkRequestBuilder<BlurWorker>()
+
+        //para iniciar el trabajo llama el metodo enqueue() en el objeto workManger
+        workManager.enqueue(blurBuilder.build())
+
+    }
 
     /**
      * Cancel any ongoing WorkRequests
