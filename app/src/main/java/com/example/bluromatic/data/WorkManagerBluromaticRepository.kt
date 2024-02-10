@@ -24,6 +24,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.example.bluromatic.KEY_BLUR_LEVEL
 import com.example.bluromatic.KEY_IMAGE_URI
+import com.example.bluromatic.getImageUri
 import com.example.bluromatic.workers.BlurWorker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +36,8 @@ class WorkManagerBluromaticRepository(context: Context) : BluromaticRepository {
      *WorkaManger.getInstance(context) para almacenar una isntacia de WorkManager
      */
     private val workManager = WorkManager.getInstance(context)
+    //nuevo creamos una nueva variable lamdad imageUri la propagamos medianter getImageUri()
+    private var imageUri: Uri = context.getImageUri() //
 
 
     override val outputWorkInfo: Flow<WorkInfo?> = MutableStateFlow(null)
@@ -51,6 +54,9 @@ class WorkManagerBluromaticRepository(context: Context) : BluromaticRepository {
          */
         val blurBuilder = OneTimeWorkRequestBuilder<BlurWorker>()
 
+        //nuevo llamamos al metodo bluerBuilder.setInputData
+        blurBuilder.setInputData(createInputDataForWorkRequest(blurLevel, imageUri))
+
         //para iniciar el trabajo llama el metodo enqueue() en el objeto workManger
         workManager.enqueue(blurBuilder.build())
 
@@ -66,7 +72,14 @@ class WorkManagerBluromaticRepository(context: Context) : BluromaticRepository {
      * update the amount of blur to be applied and the Uri to operate on
      * @return Data which contains the Image Uri as a String and blur level as an Integer
      */
+
+    //nuevo para crear objetos de datos de entrada
     private fun createInputDataForWorkRequest(blurLevel: Int, imageUri: Uri): Data {
+        /**
+         * se crea un  objeto Data.Builder  coloca imageUri y blurLevel en el objeto como pares clave-valor.
+         * A continuación, se crea un objeto de datos y se muestra cuando llama a return builder.build().
+         */
+
         val builder = Data.Builder()
         builder.putString(KEY_IMAGE_URI, imageUri.toString()).putInt(KEY_BLUR_LEVEL, blurLevel)
         return builder.build()
