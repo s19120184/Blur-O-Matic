@@ -6,6 +6,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.example.bluromatic.DELAY_TIME_MILLIS
 import com.example.bluromatic.KEY_BLUR_LEVEL
 import com.example.bluromatic.KEY_IMAGE_URI
@@ -26,10 +27,10 @@ class BlurWorker(ctx : Context , params:WorkerParameters):CoroutineWorker(ctx, p
         //pasamos la constante BLUR_LEVEL
         val blurLevel = inputData.getInt(KEY_BLUR_LEVEL, 1)
 
-        makeStatusNotification(
-            applicationContext.resources.getString(R.string.blurring_image),
-            applicationContext
-        )
+        //makeStatusNotification(
+          //  applicationContext.resources.getString(R.string.blurring_image),
+           // applicationContext
+        //)
 
         //crear un bloque withContext(), dentro la llamada pasamos Dispatchers.IO para
         //que funcion lambda se ejecute en un grupo de subprocesos especial  para bloquear
@@ -86,9 +87,12 @@ class BlurWorker(ctx : Context , params:WorkerParameters):CoroutineWorker(ctx, p
                 applicationContext
             )
 
+            //variable outputData propagarla con workDataOf() y usar constante KEY_IMAGE_URI
+            //y la variable outpuUri
+            val outputData = workDataOf(KEY_IMAGE_URI to outputUri.toString())
 
             // en el bloque try agremgamos una llamda a Result.succes()
-            Result.success()
+            Result.success(outputData)
 
         } catch (throwable: Throwable) {
 
