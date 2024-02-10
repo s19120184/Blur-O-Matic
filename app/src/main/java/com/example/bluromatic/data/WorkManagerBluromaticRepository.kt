@@ -19,6 +19,7 @@ package com.example.bluromatic.data
 import android.content.Context
 import android.net.Uri
 import androidx.work.Data
+import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -26,6 +27,8 @@ import com.example.bluromatic.KEY_BLUR_LEVEL
 import com.example.bluromatic.KEY_IMAGE_URI
 import com.example.bluromatic.getImageUri
 import com.example.bluromatic.workers.BlurWorker
+import com.example.bluromatic.workers.CleanupWorker
+import com.example.bluromatic.workers.SaveImageToFileWorker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -52,13 +55,27 @@ class WorkManagerBluromaticRepository(context: Context) : BluromaticRepository {
          * para el Worker de desenfoque y llama  a la funcion de extencion  OneTimeWorkRequestBuilder
          * desde WorkManager KTX
          */
+        //
+        var continuation = workManager.beginWith(OneTimeWorkRequest.from(CleanupWorker::class.java))
+
         val blurBuilder = OneTimeWorkRequestBuilder<BlurWorker>()
 
         //nuevo llamamos al metodo bluerBuilder.setInputData
         blurBuilder.setInputData(createInputDataForWorkRequest(blurLevel, imageUri))
 
         //para iniciar el trabajo llama el metodo enqueue() en el objeto workManger
-        workManager.enqueue(blurBuilder.build())
+        //workManager.enqueue(blurBuilder.build()) //quitar esta llamada
+        continuation = continuation.then(blurBuilder.build())
+
+        //crar una solicitud de trabajo para guardar la imagen y agregarla a la cadena
+
+        val save = OneTimeWorkRequestBuilder<SaveImageToFileWorker>()
+            .build()
+        continuation = continuation.then(save)
+
+        //iniciar el trabajo
+        continuation.enqueue()
+
 
     }
 
